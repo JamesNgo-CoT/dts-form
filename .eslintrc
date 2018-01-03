@@ -1,0 +1,12 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "jquery": true
+  },
+  "globals": {},
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "rules": {}
+}
