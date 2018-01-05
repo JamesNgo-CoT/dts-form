@@ -2,6 +2,7 @@ const babel = require('gulp-babel')
 const connect = require('gulp-connect')
 const cssnano = require('gulp-cssnano')
 const del = require('del')
+const eslint = require('gulp-eslint')
 const gulp = require('gulp')
 const mustache = require('gulp-mustache')
 const rename = require('gulp-rename')
@@ -20,6 +21,8 @@ scriptsGlob = ['./src/**/*.js']
 function gulpScripts() {
   return gulp.src(scriptsGlob)
     .pipe(mustache())
+    .pipe(eslint())
+    .pipe(eslint.format())
     .pipe(babel())
     .pipe(gulp.dest('./dist/'))
     .pipe(rename((path) => path.basename += '.min'))
@@ -30,6 +33,7 @@ function gulpScripts() {
 }
 
 gulp.task('scripts', ['cleanup'], () => gulpScripts())
+gulp.task('scripts-serve', () => gulpScripts().pipe(connect.reload()))
 
 //////////////////////////////////////////////////
 
@@ -48,6 +52,7 @@ function gulpStyles() {
 }
 
 gulp.task('styles', ['cleanup'], () => gulpStyles())
+gulp.task('styles-serve', () => gulpStyles().pipe(connect.reload()))
 
 //////////////////////////////////////////////////
 
@@ -60,6 +65,7 @@ function gulpDocs() {
 }
 
 gulp.task('docs', ['cleanup'], () => gulpDocs())
+gulp.task('docs-serve', () => gulpDocs().pipe(connect.reload()))
 
 //////////////////////////////////////////////////
 
@@ -73,7 +79,7 @@ gulp.task('serve', ['default'], () => {
     root: 'dist'
   });
 
-  gulp.watch(scriptsGlob, () => gulpScripts().pipe(connect.reload()))
-  gulp.watch(stylesGlob, () => gulpStyles().pipe(connect.reload()))
-  gulp.watch(docsGlob, () => gulpDocs().pipe(connect.reload()))
+  gulp.watch(scriptsGlob, ['scripts-serve'])
+  gulp.watch(stylesGlob, ['styles-serve'])
+  gulp.watch(docsGlob, ['docs-serve'])
 })

@@ -1,0 +1,61 @@
+{
+	"title": "Form Definition",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string"
+		},
+		"title": {
+			"type": "string"
+		},
+		"sections": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"rows": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"id": {
+									"type": "string"
+								},
+								"title": {
+									"type": "string"
+								},
+								"fields": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"id": {
+												"type": "string"
+											},
+											"label": {
+												"type": "string"
+											},
+											"columns": {
+												"type": "string"
+											}
+										},
+										"required": []
+									}
+								},
+							},
+							"required": []
+						}
+					}
+				},
+				"required": ["rows"]
+			}
+		}
+	},
+	"required": ["sections"]
+}

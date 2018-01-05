@@ -1,36 +1,40 @@
 'use strict';
 
-var One = dts.Backbone.Model.Base.extend({});
-var Two = dts.Backbone.Model.Base.extend({
+/* global dts */
+
+var A = dts.Backbone.Model.Base.extend({});
+
+var C = dts.Backbone.Collection.Base.extend({
+  model: A
+});
+
+var M = dts.Backbone.Model.Base.extend({
   attributeTypes: {
-    one: One,
-    two: One
+    c: C
   }
 });
 
-var two = new Two({
-  one: {
-    abc: 'abc',
-    def: 'def'
-  },
-  two: {
-    abc: 'abc',
-    def: 'def'
-  }
+var c = new C([{ h: 'h' }]);
+
+var m = new M({
+  abc: 'abc',
+  c: c
 });
 
-two.on('change', function () {
-  console.log('!!! CHANGE !!!');
-});
-two.on('change:one', function () {
-  console.log('!!! CHANGE : ONE !!!');
-});
-two.on('change:two', function () {
-  console.log('!!! CHANGE : TWO !!!');
+m.on('change', function () {
+  return console.log('--- CHANGE ---');
 });
 
-two.set('hij', 123);
-two.unset('hij');
-two.get('one').set('ghi', 'ghi');
-two.set('one', { abc: 'abc' });
-two.unset('two');
+console.log('=== 1 ===');
+m.set('abc', '123');
+
+console.log('=== 2 ===');
+m.get('c').push([{ a: 'a' }]);
+
+console.log('=== 3 ===');
+m.get('c').at(0).set('b', 'b');
+
+console.log('=== 4 ===');
+m.get('c').reset();
+
+console.log(m, m.toJSON());

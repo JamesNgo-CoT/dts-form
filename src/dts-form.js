@@ -1,4 +1,6 @@
+/* global Backbone */
 
+/* global dts */
 window.dts = window.dts || {}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -14,43 +16,43 @@ dts.Backbone.Collection.Base = Backbone.Collection.extend({
   chainEvent: true,
 
   add: function(models, opts) {
-    return Backbone.Collection.prototype.add.call(models, opts)
+    if (models && this.chainEvent) {
+      if (!Array.isArray(models)) {
+        models = [models]
+      }
+      const l = models.length
+      for (let i = 0; i < l; i++) {
+        if (!(models[i] instanceof this.model || models[i] instanceof Backbone.Model)) {
+          models[i] = new this.model(models[i])
+        }
+        this.listenTo(models[i], 'change', () => {
+          this.trigger('update')
+        })
+      }
+    }
+    Backbone.Collection.prototype.add.call(this, models, opts)
   },
 
   remove: function(models, opts) {
-    return Backbone.Collection.prototype.remove.call(models, opts)
+    if (models && this.chainEvent) {
+      if (!Array.isArray(models)) {
+        models = [models]
+      }
+      const l = models.length
+      for (let i = 0; i < l; i++) {
+        if (models[i] instanceof this.model || models[i] instanceof Backbone.Model) {
+          this.stopListening(models[i], 'change')
+        }
+      }
+    }
+    Backbone.Collection.prototype.remove.call(this, models, opts)
   },
 
   reset: function(models, opts) {
-    return Backbone.Collection.prototype.reset.call(models, opts)
-  },
-
-  set: function(models, opts) {
-    return Backbone.Collection.prototype.set.call(models, opts)
-  },
-
-  push: function(models, opts) {
-    return Backbone.Collection.prototype.push.call(models, opts)
-  },
-
-  pop: function(opts) {
-    return Backbone.Collection.prototype.pop.call(opts)
-  },
-
-  unshift: function(models, opts) {
-    return Backbone.Collection.prototype.unshift.call(models, opts)
-  },
-
-  shift: function(opts) {
-    return Backbone.Collection.prototype.shift.call(opts)
-  },
-
-  slice: function(begin, end) {
-    return Backbone.Collection.prototype.slice.call(begin, end)
-  },
-
-  sort: function(opts) {
-    return Backbone.Collection.prototype.sort.call(opts)
+    if (this.chainEvent) {
+      this.stopListening()
+    }
+    Backbone.Collection.prototype.reset.call(this, models, opts)
   }
 })
 
@@ -62,11 +64,14 @@ dts.Backbone.Model.Base = Backbone.Model.extend({
   chainEvent: true,
 
   set: function(attr, opts, opts2) {
+
+    // Parpare data.
     if (typeof attr === 'string') {
       attr = { [attr]: opts }
       opts = opts2
     }
 
+    // Format data.
     for (const k in this.attributeTypes) {
       if (this.attributeTypes.hasOwnProperty(k) && this.attributeTypes[k] != null && attr.hasOwnProperty(k) && attr[k] != null) {
         const args = Array.isArray(attr[k]) ? attr[k] : [attr[k]]
@@ -95,20 +100,34 @@ dts.Backbone.Model.Base = Backbone.Model.extend({
       }
     }
 
+    // Manage event chain.
     if (this.chainEvent) {
       for (const k in attr) {
+
+        // Remove event chain.
         if (this.get(k) instanceof Backbone.Model) {
-          this.stopListening(attr[k], 'change')
+          this.stopListening(this.get(k), 'change')
         } else if (this.get(k) instanceof Backbone.Collection) {
-          this.stopListening(attr[k], 'update')
+          this.stopListening(this.get(k), 'reset')
+          this.stopListening(this.get(k), 'sort')
+          this.stopListening(this.get(k), 'update')
         }
 
+        // Add event chain.
         if (attr[k] instanceof Backbone.Model) {
-          this.listenTo(attr[k], 'change', (...args) => {
+          this.listenTo(attr[k], 'change', () => {
             this.trigger('change')
             this.trigger('change:' + k)
           })
         } else if (attr[k] instanceof Backbone.Collection) {
+          this.listenTo(attr[k], 'reset', () => {
+            this.trigger('change')
+            this.trigger('change:' + k)
+          })
+          this.listenTo(attr[k], 'sort', () => {
+            this.trigger('change')
+            this.trigger('change:' + k)
+          })
           this.listenTo(attr[k], 'update', () => {
             this.trigger('change')
             this.trigger('change:' + k)

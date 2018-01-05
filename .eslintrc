@@ -4,9 +4,12 @@
     "es6": true,
     "jquery": true
   },
+  "extends": "eslint:recommended",
   "globals": {},
   "parserOptions": {
     "ecmaVersion": 6
   },
-  "rules": {}
+  "rules": {
+    "no-console": "warn"
+  }
 }
